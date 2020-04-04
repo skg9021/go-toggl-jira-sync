@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/andygrunwald/go-jira"
 	"github.com/google/logger"
 	"github.com/joho/godotenv"
 	"github.com/recoilme/slowpoke"
-	"os"
-	"strconv"
-	"strings"
 )
 
 const logPath = "./app.log"
@@ -44,11 +45,12 @@ func main() {
 
 			description := ""
 
-			if entry.Task.Name != entry.Description {
-				description = entry.Description
-			}
+			// if entry.Task.Name != entry.Description {
+			// 	description = entry.Description
+			// }
+			description = entry.Description
 
-			if duration != strconv.FormatInt(entry.Duration, 10) && entry.Task.JiraId != "" {
+			if duration != strconv.FormatInt(entry.Duration, 10) && entry.JiraId != "" {
 				if jiraWorklogId != "0" {
 					//update
 					start := jira.Time(entry.Start)
@@ -62,7 +64,7 @@ func main() {
 				} else {
 					//new
 					start := jira.Time(entry.Start)
-					worklog, error := jiraClient.addWorkLog(entry.Task.JiraId, description, entry.Duration, start)
+					worklog, error := jiraClient.addWorkLog(entry.JiraId, description, entry.Duration, start)
 
 					if error == nil {
 						setEntryInDB(entry.Id, strconv.FormatInt(entry.Duration, 10)+" "+worklog.ID)

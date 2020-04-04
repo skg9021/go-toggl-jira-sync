@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/logger"
-	"github.com/jason0x43/go-toggl"
 	"regexp"
 	"time"
+
+	"github.com/google/logger"
+	"github.com/jason0x43/go-toggl"
 )
 
 type TogglProject struct {
@@ -25,6 +26,7 @@ type TogglEntry struct {
 	Stop        time.Time
 	Duration    int64
 	Description string
+	JiraId      string
 	Project     TogglProject
 	Task        TogglTask
 	Imported    bool
@@ -63,12 +65,15 @@ func (s *Session) getTogglEntries(days int) []TogglEntry {
 			continue
 		}
 
-		task, error := account.getTogglTaskById(entry.Tid)
+		// Task id is not available for free account
+		// task, error := account.getTogglTaskById(entry.Tid)
 
-		if error != nil {
-			logger.Infof("[toggl] Entry '%s' with id %d dosen't have task", entry.Description, entry.ID)
-			continue
-		}
+		// if error != nil {
+		// 	logger.Infof("[toggl] Entry '%s' with id %d dosen't have task", entry.Description, entry.ID)
+		// 	continue
+		// }
+
+		jiraId := account.getJIRATaskfromToggl(entry.Description)
 
 		entry := TogglEntry{
 			Id:          entry.ID,
@@ -76,13 +81,26 @@ func (s *Session) getTogglEntries(days int) []TogglEntry {
 			Duration:    entry.Duration,
 			Description: entry.Description,
 			Project:     project,
-			Task:        task,
+			JiraId:      jiraId,
 		}
 
 		entries = append(entries, entry)
 	}
 
 	return entries
+}
+
+func (a *Account) getJIRATaskfromToggl(taskName string) string {
+	jiraId := ""
+
+	regex := regexp.MustCompile(`^\w+\-\d*`)
+	regexResults := regex.FindAllSubmatch([]byte(taskName), 1)
+
+	if len(regexResults) > 0 {
+		jiraId = string(regexResults[0][0])
+	}
+
+	return jiraId
 }
 
 func (a *Account) getTogglProjectById(id int) (TogglProject, error) {
@@ -127,7 +145,7 @@ func (a *Account) getTogglTasks() []TogglTask {
 	for _, task := range a.Data.Tasks {
 		jiraId := ""
 
-		regex := regexp.MustCompile(`\w+\-\d*`)
+		regex := regexp.MustCompile(`^\w+\-\d*`)
 		regexResults := regex.FindAllSubmatch([]byte(task.Name), 1)
 
 		if len(task.Name) > 0 && len(regexResults) > 0 {
