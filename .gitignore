@@ -5,3 +5,5 @@ build
 db
 users.json
 vendor
+
+toggl_jira_sync
