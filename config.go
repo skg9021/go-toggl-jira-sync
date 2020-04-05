@@ -3,12 +3,13 @@ package main
 import (
 	"os"
 	"strconv"
+	"time"
 )
 
 // Config to run the program
 type Config struct {
 	Days      int
-	Frequency int
+	Frequency time.Duration
 }
 
 // NewConfig is the constructor for config to set
@@ -22,7 +23,8 @@ func NewConfig() Config {
 		config.Days = days
 	}
 
-	frequency, _ := strconv.Atoi(os.Getenv("FREQUENCY"))
+	frequencyInt, _ := strconv.Atoi(os.Getenv("FREQUENCY"))
+	frequency := time.Duration(frequencyInt)
 	if frequency == 0 {
 		config.Frequency = 60
 	} else {
