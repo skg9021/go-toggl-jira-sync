@@ -75,16 +75,18 @@ func (s *Session) getTogglEntries(days int) []TogglEntry {
 
 		jiraId := account.getJIRATaskfromToggl(entry.Description)
 
-		entry := TogglEntry{
-			Id:          entry.ID,
-			Start:       entry.Start.Add(time.Hour).Add(time.Millisecond),
-			Duration:    entry.Duration,
-			Description: entry.Description,
-			Project:     project,
-			JiraId:      jiraId,
-		}
+		if jiraId != "" {
+			entry := TogglEntry{
+				Id:          entry.ID,
+				Start:       entry.Start.Add(time.Hour).Add(time.Millisecond),
+				Duration:    entry.Duration,
+				Description: entry.Description,
+				Project:     project,
+				JiraId:      jiraId,
+			}
 
-		entries = append(entries, entry)
+			entries = append(entries, entry)
+		}
 	}
 
 	return entries
